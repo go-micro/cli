@@ -13,7 +13,7 @@ import (
 	_ "github.com/go-micro/cli/cmd/stream"
 
 	// plugins
-	_ "github.com/asim/go-micro/plugins/registry/kubernetes/v4"
+	_ "github.com/go-micro/plugins/v4/registry/kubernetes"
 )
 
 func main() {
