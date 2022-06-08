@@ -11,7 +11,17 @@ build:
   artifacts:
   - image: {{.Service}}{{if .Client}}-client{{end}}
 deploy:
+{{- if .Kustomize}}
+  kustomize:
+    paths:
+      - ./resources/dev/
+{{- if .Tern}}
+    buildArgs:
+      - load-restrictor LoadRestrictionsNone
+{{end}}
+{{- else}}
   kubectl:
     manifests:
-    - resources/*.yaml
+      - resources/*.yaml
+{{end}}
 `

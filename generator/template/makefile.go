@@ -8,6 +8,12 @@ init:
 	@go get -u google.golang.org/protobuf/proto
 	@go install github.com/golang/protobuf/protoc-gen-go@latest
 	@go install github.com/asim/go-micro/cmd/protoc-gen-micro/v4@latest
+	{{- if .Tern}}
+	@go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+	{{- end}}
+	{{- if .Sqlc}}
+	@go install github.com/jackc/tern@latest
+	{{- end}}
 
 .PHONY: proto
 proto:
@@ -31,5 +37,12 @@ test:
 
 .PHONY: docker
 docker:
-	@docker build -t {{.Service}}{{if .Client}}-client{{end}}:latest .
+	@{{if .Buildkit}}DOCKER_BUILDKIT=1 {{end}}docker build -t {{.Service}}{{if .Client}}-client{{end}}:latest {{if .PrivateRepo}}--ssh=default {{end}}.
+
+{{- if .Sqlc}}
+
+.PHONY: sqlc
+sqlc:
+	@sqlc generate -f ./postgres/sqlc.yaml
+{{- end -}}
 `

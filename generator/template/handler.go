@@ -87,3 +87,26 @@ func (e *{{title .Service}}) BidiStream(ctx context.Context, stream pb.{{title .
 	}
 }
 `
+
+var HealthSRV = `package handler
+
+import (
+	"context"
+
+	pb "{{.Vendor}}{{.Service}}/proto"
+)
+
+type Health struct{}
+
+func (h *Health) Check(ctx context.Context, req *pb.HealthCheckRequest, rsp *pb.HealthCheckResponse) error {
+	rsp.Status = pb.HealthCheckResponse_SERVING
+	return nil
+}
+
+func (h *Health) Watch(ctx context.Context, req *pb.HealthCheckRequest, stream pb.Health_WatchStream) error {
+	stream.Send(&pb.HealthCheckResponse{
+		Status: pb.HealthCheckResponse_SERVING,
+	})
+	return nil
+}
+`

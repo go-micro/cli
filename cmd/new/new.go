@@ -1,15 +1,18 @@
 package new
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path"
 	"strings"
+	"text/template"
 
-	"github.com/urfave/cli/v2"
 	mcli "github.com/go-micro/cli/cmd"
-	"go-micro.dev/v4/cmd/micro/generator"
-	tmpl "go-micro.dev/v4/cmd/micro/generator/template"
+	"github.com/go-micro/cli/generator"
+	tmpl "github.com/go-micro/cli/generator/template"
+	"github.com/pkg/errors"
+	"github.com/urfave/cli/v2"
 )
 
 var flags []cli.Flag = []cli.Flag{
@@ -24,6 +27,56 @@ var flags []cli.Flag = []cli.Flag{
 	&cli.BoolFlag{
 		Name:  "skaffold",
 		Usage: "Generate Skaffold files",
+	},
+	&cli.BoolFlag{
+		Name:  "tilt",
+		Usage: "Generate Tiltfile",
+	},
+	&cli.BoolFlag{
+		Name:  "health",
+		Usage: "Generate gRPC Health service used for Kubernetes liveliness and readiness probes",
+	},
+	&cli.BoolFlag{
+		Name:  "kustomize",
+		Usage: "Generate kubernetes resouce files in a kustomize structure",
+	},
+	&cli.BoolFlag{
+		Name:  "sqlc",
+		Usage: "Generate sqlc resources",
+	},
+	&cli.BoolFlag{
+		Name:  "grpc",
+		Usage: "Use gRPC as default server and client",
+	},
+	&cli.BoolFlag{
+		Name:  "buildkit",
+		Usage: "Use BuildKit features in Dockerfile",
+	},
+	&cli.BoolFlag{
+		Name:  "tern",
+		Usage: "Generate tern resouces; sql migrations templates",
+	},
+	&cli.BoolFlag{
+		Name:  "advanced",
+		Usage: "Generate advanced features in main.go server file",
+	},
+	&cli.BoolFlag{
+		Name:  "privaterepo",
+		Usage: "Amend Dockerfile to build from private repositories (add ssh-agent)",
+	},
+	&cli.StringFlag{
+		Name:  "namespace",
+		Usage: "Default namespace for kubernetes resources, defaults to 'default'",
+		Value: "default",
+	},
+	&cli.StringFlag{
+		Name:  "postgresaddress",
+		Usage: "Default postgres address for kubernetes resources, defaults to postgres.database.svc",
+		Value: "postgres.database.svc",
+	},
+	&cli.BoolFlag{
+		Name:  "complete",
+		Usage: "Complete will set the following flags to true; jaeger, health, grpc, sqlc, tern, kustomize, tilt, advanced",
 	},
 }
 
@@ -99,52 +152,104 @@ func createProject(ctx *cli.Context, pt string) error {
 		generator.Vendor(vendor),
 		generator.Directory(dir),
 		generator.Client(client),
-		generator.Jaeger(ctx.Bool("jaeger")),
+		generator.Jaeger(ctx.Bool("jaeger") || ctx.Bool("complete")),
 		generator.Skaffold(ctx.Bool("skaffold")),
+		generator.Tilt(ctx.Bool("tilt") || ctx.Bool("complete")),
+		generator.Health(ctx.Bool("health") || ctx.Bool("complete")),
+		generator.Kustomize(ctx.Bool("kustomize") || ctx.Bool("complete")),
+		generator.Sqlc(ctx.Bool("sqlc") || ctx.Bool("complete")),
+		generator.GRPC(ctx.Bool("grpc") || ctx.Bool("health") || ctx.Bool("complete")),
+		generator.Buildkit(ctx.Bool("buildkit") || ctx.Bool("privaterepo") || ctx.Bool("complete")),
+		generator.Tern(ctx.Bool("tern") || ctx.Bool("complete")),
+		generator.Advanced(ctx.Bool("advanced") || ctx.Bool("complete")),
+		generator.PrivateRepo(ctx.Bool("privaterepo")),
+		generator.Namespace(ctx.String("namespace")),
+		generator.PostgresAddress(ctx.String("postgresaddress")),
 	)
 
 	files := []generator.File{
-		{".dockerignore", tmpl.DockerIgnore},
-		{".gitignore", tmpl.GitIgnore},
-		{"Dockerfile", tmpl.Dockerfile},
-		{"Makefile", tmpl.Makefile},
-		{"go.mod", tmpl.Module},
+		{Path: ".dockerignore", Template: tmpl.DockerIgnore},
+		{Path: ".gitignore", Template: tmpl.GitIgnore},
+		{Path: "Dockerfile", Template: tmpl.Dockerfile},
+		{Path: "Makefile", Template: tmpl.Makefile},
+		{Path: "go.mod", Template: tmpl.Module},
 	}
 
 	switch pt {
 	case "client":
 		files = append(files, []generator.File{
-			{"main.go", tmpl.MainCLT},
+			{Path: "main.go", Template: tmpl.MainCLT},
 		}...)
 	case "function":
 		files = append(files, []generator.File{
-			{"handler/" + name + ".go", tmpl.HandlerFNC},
-			{"main.go", tmpl.MainFNC},
-			{"proto/" + name + ".proto", tmpl.ProtoFNC},
+			{Path: "handler/" + name + ".go", Template: tmpl.HandlerFNC},
+			{Path: "main.go", Template: tmpl.MainFNC},
+			{Path: "proto/" + name + ".proto", Template: tmpl.ProtoFNC},
 		}...)
 	case "service":
 		files = append(files, []generator.File{
-			{"handler/" + name + ".go", tmpl.HandlerSRV},
-			{"main.go", tmpl.MainSRV},
-			{"proto/" + name + ".proto", tmpl.ProtoSRV},
+			{Path: "handler/" + name + ".go", Template: tmpl.HandlerSRV},
+			{Path: "main.go", Template: tmpl.MainSRV},
+			{Path: "proto/" + name + ".proto", Template: tmpl.ProtoSRV},
 		}...)
 	default:
 		return fmt.Errorf("%s project type not supported", pt)
 	}
 
-	if ctx.Bool("kubernetes") || ctx.Bool("skaffold") {
+	opts := g.Options()
+	if opts.Sqlc {
 		files = append(files, []generator.File{
-			{"plugins.go", tmpl.Plugins},
-			{"resources/clusterrole.yaml", tmpl.KubernetesClusterRole},
-			{"resources/configmap.yaml", tmpl.KubernetesEnv},
-			{"resources/deployment.yaml", tmpl.KubernetesDeployment},
-			{"resources/rolebinding.yaml", tmpl.KubernetesRoleBinding},
+			{Path: "postgres/sqlc.yaml", Template: tmpl.Sqlc},
+			{Path: "postgres/postgres.go", Template: tmpl.Postgres},
+			{Path: "postgres/queries/example.sql", Template: tmpl.QueryExample},
+			{Path: "postgres/migrations/", Template: ""},
 		}...)
 	}
 
-	if ctx.Bool("skaffold") {
+	if opts.Tern {
 		files = append(files, []generator.File{
-			{"skaffold.yaml", tmpl.SkaffoldCFG},
+			{Path: "postgres/migrations/001_create_schema.sql", Template: tmpl.TernSql},
+		}...)
+	}
+
+	if opts.Health {
+		files = append(files, []generator.File{
+			{Path: "handler/health.go", Template: tmpl.HealthSRV},
+		}...)
+	}
+
+	if (ctx.Bool("kubernetes") || opts.Skaffold || opts.Tilt) && !opts.Kustomize {
+		files = append(files, []generator.File{
+			{Path: "plugins.go", Template: tmpl.Plugins},
+			{Path: "resources/clusterrole.yaml", Template: tmpl.KubernetesClusterRole},
+			{Path: "resources/configmap.yaml", Template: tmpl.KubernetesEnv},
+			{Path: "resources/deployment.yaml", Template: tmpl.KubernetesDeployment},
+			{Path: "resources/rolebinding.yaml", Template: tmpl.KubernetesRoleBinding},
+		}...)
+	}
+
+	if opts.Kustomize {
+		files = append(files, []generator.File{
+			{Path: "plugins.go", Template: tmpl.Plugins},
+			{Path: "resources/base/clusterrole.yaml", Template: tmpl.KubernetesClusterRole},
+			{Path: "resources/base/app.env", Template: tmpl.AppEnv},
+			{Path: "resources/base/deployment.yaml", Template: tmpl.KubernetesDeployment},
+			{Path: "resources/base/rolebinding.yaml", Template: tmpl.KubernetesRoleBinding},
+			{Path: "resources/base/kustomization.yaml", Template: tmpl.KustomizationBase},
+			{Path: "resources/dev/kustomization.yaml", Template: tmpl.KustomizationDev},
+			{Path: "resources/prod/kustomization.yaml", Template: tmpl.KustomizationProd},
+		}...)
+	}
+
+	if opts.Skaffold {
+		files = append(files, []generator.File{
+			{Path: "skaffold.yaml", Template: tmpl.SkaffoldCFG},
+		}...)
+	}
+
+	if opts.Tilt {
+		files = append(files, []generator.File{
+			{Path: "Tiltfile", Template: tmpl.Tiltfile},
 		}...)
 	}
 
@@ -156,7 +261,11 @@ func createProject(ctx *cli.Context, pt string) error {
 	if client {
 		comments = clientComments(name, dir)
 	} else {
-		comments = protoComments(name, dir)
+		var err error
+		comments, err = protoComments(name, dir, opts.Sqlc)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, comment := range comments {
@@ -174,18 +283,36 @@ func clientComments(name, dir string) []string {
 	}
 }
 
-func protoComments(name, dir string) []string {
-	return []string{
-		"\ndownload protoc zip packages (protoc-$VERSION-$PLATFORM.zip) and install:",
-		"\nvisit https://github.com/protocolbuffers/protobuf/releases/latest",
-		"\ndownload protobuf for go-micro:",
-		"\ngo get -u google.golang.org/protobuf/proto",
-		"go install github.com/golang/protobuf/protoc-gen-go@latest",
-		"go install go-micro.dev/v4/cmd/protoc-gen-micro@v4",
-		"\ncompile the proto file " + name + ".proto and install dependencies:",
-		"\ncd " + dir,
-		"make proto update tidy",
+func protoComments(name, dir string, sqlc bool) ([]string, error) {
+	tmp := `
+download protoc zip packages (protoc-$VERSION-$PLATFORM.zip) and install:
+
+visit https://github.com/protocolbuffers/protobuf/releases/latest
+
+download protobuf for go-micro:
+
+go get -u google.golang.org/protobuf/proto
+go install github.com/golang/protobuf/protoc-gen-go@latest
+go install go-micro.dev/v4/cmd/protoc-gen-micro@v4
+
+compile the proto file {{ .Name }}.proto and install dependencies:
+
+cd {{ .Dir }}
+make proto {{ if .Sqlc }}sqlc {{ end }}update tidy`
+
+	var b bytes.Buffer
+	t, err := template.New("comments").Parse(tmp)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to parse comments template")
 	}
+
+	if err := t.Execute(&b, map[string]interface{}{
+		"Name": name,
+		"Dir":  dir,
+		"Sqlc": sqlc,
+	}); err != nil {
+	}
+	return []string{b.String()}, nil
 }
 
 func getNameAndVendor(s string) (string, string) {
