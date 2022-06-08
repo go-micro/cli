@@ -211,7 +211,7 @@ go-micro new service --tern helloworld
 
 ### sqlc - SQL Code Generation
 
-Sqlc can compile SQL queries into boilerplate Go code that allows you to easily
+[Sqlc](14) can compile SQL queries into boilerplate Go code that allows you to easily
 create and manage your database layer. Go-micro can set your service up for use
 with sqlc, and used Postgres as a default backend. Sqlc works well in combination 
 with [Tern](#tern---postgres-migrations). 
@@ -280,7 +280,7 @@ go-micro new service --kubernetes helloworld
 
 ### Kustomize - Kubernetes Resource Management
 
-Kustomize can be used to manage more complex Kubernetes manifests for various
+[Kustomize](15) can be used to manage more complex Kubernetes manifests for various
 deployments, such as a development and production environment.
 
 To create a new service with Kubernetes resources organized in a Kustomize structure
@@ -625,3 +625,5 @@ $ go-micro stream bidi helloworld Helloworld.BidiStream '{"stroke": 1}' '{"strok
 [11]: https://docs.docker.com/develop/develop-images/build_enhancements/
 [12]: https://kubernetes.io/blog/2022/05/13/grpc-probes-now-in-beta/
 [13]: https://github.com/grpc/grpc/blob/master/doc/health-checking.md
+[14]: https://github.com/kyleconroy/sqlc
+[15]: https://kubectl.docs.kubernetes.io/references/kustomize/
