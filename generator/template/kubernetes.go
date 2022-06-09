@@ -7,9 +7,14 @@ var KubernetesEnv = `---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{.Service}}{{if .Client}}-client{{end}}-env
+  name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-env
 data:
   MICRO_REGISTRY: kubernetes
+{{if .Tern}}
+  PGHOST: {{ .PostgresAddress }}
+	PGUSER: {{lowerhyphen .Service}}{{if .Client}}_client{{end}}
+	PGDATABASE: {{lowerhyphen .Service}}{{if .Client}}_client{{end}}
+{{end}}
 `
 
 // KubernetesClusterRole is a Kubernetes cluster role manifest template
@@ -46,7 +51,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: default
+  namespace: {{ .Namespace }}
 `
 
 // KubernetesDeployment is a Kubernetes deployment manifest template used for
@@ -56,23 +61,68 @@ var KubernetesDeployment = `---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.Service}}{{if .Client}}-client{{end}}
+  name: {{tohyphen .Service}}{{if .Client}}-client{{end}}
   labels:
-    app: {{.Service}}{{if .Client}}-client{{end}}
+    app: {{tohyphen .Service}}{{if .Client}}-client{{end}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{.Service}}{{if .Client}}-client{{end}}
+      app: {{tohyphen .Service}}{{if .Client}}-client{{end}}
   template:
     metadata:
       labels:
-        app: {{.Service}}{{if .Client}}-client{{end}}
+        app: {{tohyphen .Service}}{{if .Client}}-client{{end}}
     spec:
-      containers:
-      - name: {{.Service}}{{if .Client}}-client{{end}}
-        image: {{.Service}}{{if .Client}}-client{{end}}:latest
+		{{- if .Tern}}
+      initContainers:
+      - name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-migrations
+        securityContext:
+          allowPrivilegeEscalation: false
+        image: golang:alpine
         envFrom:
         - configMapRef:
-            name: {{.Service}}{{if .Client}}-client{{end}}-env
+            name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-env
+        - secretRef:
+            name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-postgres-env
+        volumeMounts:
+          - mountPath: /migrations
+            name: migrations
+        command:
+          - sh
+          - "-c"
+          - |
+            go install github.com/jackc/tern@latest
+            tern migrate --migrations /migrations
+		{{- end}}
+      containers:
+      - name: {{tohyphen .Service}}{{if .Client}}-client{{end}}
+        securityContext:
+          allowPrivilegeEscalation: false
+        image: {{tohyphen .Service}}{{if .Client}}-client{{end}}:latest
+        envFrom:
+        - configMapRef:
+            name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-env
+				{{- if .Tern}}
+        - secretRef:
+            name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-postgres-env
+				{{- end}}
+			  {{- if .Health}}
+        readinessProbe:
+          grpc:
+            port: 41888
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          grpc:
+            port: 41888
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+				{{- end}}
+			{{- if .Tern}}
+      volumes:
+      - name: migrations
+        configMap:
+          name: {{tohyphen .Service}}{{if .Client}}-client{{end}}-migrations
+			{{- end}}
 `

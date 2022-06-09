@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/urfave/cli/v2"
 	mcli "github.com/go-micro/cli/cmd"
-	"go-micro.dev/v4/cmd/micro/generator"
-	tmpl "go-micro.dev/v4/cmd/micro/generator/template"
+	"github.com/go-micro/cli/generator"
+	tmpl "github.com/go-micro/cli/generator/template"
+	"github.com/urfave/cli/v2"
 )
 
 func init() {
@@ -26,6 +26,11 @@ func init() {
 				Name:   "skaffold",
 				Usage:  "Generate Skaffold template files",
 				Action: Skaffold,
+			},
+			{
+				Name:   "sqlc",
+				Usage:  "Generate sqlc resources",
+				Action: Sqlc,
 			},
 		},
 	})
@@ -52,11 +57,11 @@ func Kubernetes(ctx *cli.Context) error {
 	)
 
 	files := []generator.File{
-		{"plugins.go", tmpl.Plugins},
-		{"resources/clusterrole.yaml", tmpl.KubernetesClusterRole},
-		{"resources/configmap.yaml", tmpl.KubernetesEnv},
-		{"resources/deployment.yaml", tmpl.KubernetesDeployment},
-		{"resources/rolebinding.yaml", tmpl.KubernetesRoleBinding},
+		{Path: "plugins.go", Template: tmpl.Plugins},
+		{Path: "resources/clusterrole.yaml", Template: tmpl.KubernetesClusterRole},
+		{Path: "resources/configmap.yaml", Template: tmpl.KubernetesEnv},
+		{Path: "resources/deployment.yaml", Template: tmpl.KubernetesDeployment},
+		{Path: "resources/rolebinding.yaml", Template: tmpl.KubernetesRoleBinding},
 	}
 
 	g.Generate(files)
@@ -86,14 +91,14 @@ func Skaffold(ctx *cli.Context) error {
 	)
 
 	files := []generator.File{
-		{".dockerignore", tmpl.DockerIgnore},
-		{"go.mod", tmpl.Module},
-		{"plugins.go", tmpl.Plugins},
-		{"resources/clusterrole.yaml", tmpl.KubernetesClusterRole},
-		{"resources/configmap.yaml", tmpl.KubernetesEnv},
-		{"resources/deployment.yaml", tmpl.KubernetesDeployment},
-		{"resources/rolebinding.yaml", tmpl.KubernetesRoleBinding},
-		{"skaffold.yaml", tmpl.SkaffoldCFG},
+		{Path: ".dockerignore", Template: tmpl.DockerIgnore},
+		{Path: "go.mod", Template: tmpl.Module},
+		{Path: "plugins.go", Template: tmpl.Plugins},
+		{Path: "resources/clusterrole.yaml", Template: tmpl.KubernetesClusterRole},
+		{Path: "resources/configmap.yaml", Template: tmpl.KubernetesEnv},
+		{Path: "resources/deployment.yaml", Template: tmpl.KubernetesDeployment},
+		{Path: "resources/rolebinding.yaml", Template: tmpl.KubernetesRoleBinding},
+		{Path: "skaffold.yaml", Template: tmpl.SkaffoldCFG},
 	}
 
 	if err := g.Generate(files); err != nil {
@@ -101,6 +106,51 @@ func Skaffold(ctx *cli.Context) error {
 	}
 
 	fmt.Println("skaffold project template files generated")
+
+	return nil
+}
+
+// Sqlc generates sqlc files in the current working directory.
+// Exits on error.
+func Sqlc(ctx *cli.Context) error {
+	service, err := getService()
+	if err != nil {
+		return err
+	}
+
+	vendor, err := getServiceVendor(service)
+	if err != nil {
+		return err
+	}
+
+	g := generator.New(
+		generator.Service(service),
+		generator.Vendor(vendor),
+		generator.Directory("."),
+		generator.Client(strings.HasSuffix(service, "-client")),
+		generator.Sqlc(true),
+	)
+
+	files := []generator.File{
+		{Path: "postgres/queries/example.sql", Template: tmpl.QueryExample},
+		{Path: "postgres/migrations/", Template: ""},
+	}
+
+	path := "postgres/postgres.go"
+	if _, err := os.Stat("./" + path); err != nil {
+		files = append(files, generator.File{Path: path, Template: tmpl.Postgres})
+	}
+
+	path = "postgres/sqlc.yaml"
+	if _, err := os.Stat("./" + path); err != nil {
+		files = append(files, generator.File{Path: path, Template: tmpl.Sqlc})
+	}
+
+	if err := g.Generate(files); err != nil {
+		return err
+	}
+
+	fmt.Println("Sqlc project template files generated")
 
 	return nil
 }

@@ -65,4 +65,25 @@ message BidiStreamRequest {
 message BidiStreamResponse {
 	int64 stroke = 1;
 }
+
+{{if .Health}}
+service Health {
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {}
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {}
+}
+
+message HealthCheckRequest { 
+	string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}
+{{end}}
 `
