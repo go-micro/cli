@@ -119,7 +119,7 @@ import (
 	"go-micro.dev/v4/server"
 {{- end}}
 
-	"github.com/go-micro/cli/debug/trace/jaeger"{{end}}
+	"github.com/go-micro/go-micro/debug/trace/jaeger"{{end}}
 {{if .GRPC}}
 	grpcc "github.com/asim/go-micro/plugins/client/grpc/v4"
 	"github.com/asim/go-micro/plugins/server/grpc/v4"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/urfave/cli/v2"
-	mcli "github.com/go-micro/cli/cmd"
+	mcli "github.com/go-micro/go-micro/cmd"
 	"go-micro.dev/v4/runtime"
 	"go-micro.dev/v4/runtime/local/git"
 )
