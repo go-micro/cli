@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/client"
-	mcli "github.com/go-micro/go-micro/cmd"
+	mcli "github.com/go-micro/cli/cmd"
 )
 
 func init() {

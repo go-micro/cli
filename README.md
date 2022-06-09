@@ -9,7 +9,7 @@ Go Micro CLI is the command line interface for developing [Go Micro][1] projects
 Installation is done by using the [`go install`][3] command.
 
 ```bash
-go install github.com/go-micro/cli@latest
+go install -o go-micro github.com/go-micro/cli
 ```
 
 Let's create a new service using the `new` command.
@@ -22,7 +22,7 @@ Follow the on-screen instructions. Next, we can run the program.
 
 ```bash
 cd helloworld
-make proto update tidy
+make proto tidy
 go-micro run
 ```
 

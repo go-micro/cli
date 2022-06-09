@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/urfave/cli/v2"
-	mcli "github.com/go-micro/go-micro/cmd"
+	mcli "github.com/go-micro/cli/cmd"
 )
 
 func init() {

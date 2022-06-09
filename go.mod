@@ -1,4 +1,4 @@
-module github.com/go-micro/go-micro
+module github.com/go-micro/cli
 
 go 1.17
 

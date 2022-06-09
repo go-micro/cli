@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	mcli "github.com/go-micro/go-micro/cmd"
-	"github.com/go-micro/go-micro/generator"
-	tmpl "github.com/go-micro/go-micro/generator/template"
+	mcli "github.com/go-micro/cli/cmd"
+	"github.com/go-micro/cli/generator"
+	tmpl "github.com/go-micro/cli/generator/template"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
