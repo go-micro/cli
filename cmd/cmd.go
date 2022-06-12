@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/urfave/cli/v2"
 	mcmd "go-micro.dev/v4/cmd"
@@ -99,7 +100,11 @@ func NewCLI(opts ...mcmd.Option) CLI {
 		options.Description = description
 	}
 	if len(options.Version) == 0 {
-		options.Version = version
+		bi, ok := debug.ReadBuildInfo()
+		if !ok {
+			options.Version = version
+		}
+		options.Version = bi.Main.Version
 	}
 
 	c := new(cmd)
