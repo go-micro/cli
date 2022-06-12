@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/fsnotify/fsnotify v1.5.4
+	github.com/go-micro/plugins/v4/registry/kubernetes v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/uber/jaeger-client-go v2.29.1+incompatible

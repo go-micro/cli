@@ -33,3 +33,4 @@ coverage.out
 dist
 micro
 cmd/go-micro/go-micro
+cmd/go-micro/go-micro-dev

@@ -300,17 +300,18 @@ compile the proto file {{ .Name }}.proto and install dependencies:
 cd {{ .Dir }}
 make proto {{ if .Sqlc }}sqlc {{ end }}update tidy`
 
-	var b bytes.Buffer
 	t, err := template.New("comments").Parse(tmp)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to parse comments template")
 	}
 
+	var b bytes.Buffer
 	if err := t.Execute(&b, map[string]interface{}{
 		"Name": name,
 		"Dir":  dir,
 		"Sqlc": sqlc,
 	}); err != nil {
+		return nil, errors.Wrap(err, "Failed to execute proto comments template")
 	}
 	return []string{b.String()}, nil
 }

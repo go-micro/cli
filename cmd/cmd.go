@@ -12,7 +12,7 @@ var (
 	// DefaultCLI is the default, unmodified root command.
 	DefaultCLI CLI = NewCLI()
 
-	name        string = "micro"
+	name        string = os.Args[0]
 	description string = "The Go Micro CLI tool"
 	version     string = "latest"
 )

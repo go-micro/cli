@@ -5,6 +5,7 @@ import (
 
 	// register commands
 	_ "github.com/go-micro/cli/cmd/call"
+	_ "github.com/go-micro/cli/cmd/completion"
 	_ "github.com/go-micro/cli/cmd/describe"
 	_ "github.com/go-micro/cli/cmd/generate"
 	_ "github.com/go-micro/cli/cmd/new"
