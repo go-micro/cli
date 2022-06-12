@@ -32,3 +32,4 @@ coverage.out
 # ignore locally built binaries
 dist
 micro
+cmd/go-micro/go-micro
