@@ -8,9 +8,9 @@ _cli_bash_autocomplete() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     if [[ "$cur" == "-"* ]]; then
-      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} ${cur} --generate-bash-completion )
+      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} ${cur} --generate-bash-completion | awk -F':' '{ print $1}')
     else
-      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
+      opts=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion | awk -F':' '{ print $1}')
     fi
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     return 0
