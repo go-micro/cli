@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/urfave/cli/v2"
 	mcli "github.com/go-micro/cli/cmd"
+	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
 )
 

@@ -109,6 +109,7 @@ func NewCLI(opts ...mcmd.Option) CLI {
 	c.app.Usage = c.opts.Description
 	c.app.Version = c.opts.Version
 	c.app.Flags = mcmd.DefaultFlags
+	c.app.EnableBashCompletion = true
 
 	if len(options.Version) == 0 {
 		c.app.HideVersion = true

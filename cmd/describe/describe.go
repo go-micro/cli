@@ -1,8 +1,8 @@
 package describe
 
 import (
-	"github.com/urfave/cli/v2"
 	mcli "github.com/go-micro/cli/cmd"
+	"github.com/urfave/cli/v2"
 )
 
 var flags []cli.Flag = []cli.Flag{
