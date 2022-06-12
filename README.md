@@ -173,7 +173,7 @@ go-micro new service --grpc helloworld
 
 ### Tern - Postgres Migrations
 
-Tern can be used to create and manage postgres migrations. Go-micro can set the
+Tern can be used to create and manage Postgres migrations. Go-micro can set the
 service up to use Tern SQL migrations.
 
 To create a new service with Tern pass the `--tern` flag to
@@ -191,18 +191,18 @@ PGPASSWORD=<empty for localhost>
 ```
 
 Setting the `--tern` flag in combination with any of the Kubernetes flags will
-also create an `InitContainer` in the deployment manifest to automatically apply
+also create a `InitContainer` in the deployment manifest to automatically apply
 all migrations upon deployment. You will need to create a `helloworld-postgres-env`
 secret with a `PGPASSWORD` to allow tern to connect to your database instance.
 
 The default database address used is `postgres.database.svc`, and the user and 
-database are set to the service name. To specifiy a different database address
+database are set to the service name. To specify a different database address
 use the `--postgresaddress="my.namespace.svc"` flag
 
-If you are also using Kustomize to manage your kubernetes resources, be aware
+If you are also using Kustomize to manage your Kubernetes resources, be aware
 that you will have to manually add every migration to `resouces/base/kustomization.yaml`.
 And that you will have to pass the `--load-restrictor LoadRestrictionsNone` flag 
-to `kustomize build`, to allow kustomize to access resouces outside of the `base` 
+to `kustomize build`, to allow Kustomize to access resources outside of the `base` 
 folder. Tilt and Skaffold will do this for you automatically.
 
 ```bash
@@ -220,7 +220,7 @@ Place your SQL queries in `postgres/queries/*.sql` and run `make sqlc` to compil
 Be sure you have your SQL schema defined in `postgres/migrations/*.sql`, as can 
 be done with Tern.
 
-After compilation you can create your database layer in `postgres/*.go` with the
+After compilation, you can create your database layer in `postgres/*.go` with the
 sqlc connector. An example is provided in `postgres/postgres.go`.
 
 To create a new service with sqlc pass the `--sqlc` flag to
@@ -233,7 +233,7 @@ go-micro new service --sqlc helloworld
 ### Docker BuildKit
 
 [Docker BuildKit](11) is a new container build engine that provides new useful 
-freatures, such as the ability to cache specific directories across builds. This
+features, such as the ability to cache specific directories across builds. This
 can prevent Go from having to re-download modules every build.
 
 To create a new service with the BuildKit engine pass the `--buildkit` flag to
@@ -246,7 +246,7 @@ go-micro new service --buildkit helloworld
 ### Private Git Repository
 
 If you plan on hosting the service in a private Git repository, the docker file
-needs some tweaks to allow Go to access and clone the private repositorie(s).
+needs some tweaks to allow Go to access and clone private repositories.
 
 For this, SSH Git access needs to be set up, and an SSH agent needs to be running,
 with the Git SSH key added. You can manually start an SSH agent and add the SSH key
@@ -256,20 +256,20 @@ by running:
 $ eval $(ssh-agent) && ssh-add <optional: path to ssh key, default: ~/.shh/id_rsa>
 ```
 
-Alternatively, you can use [Tilt](#tilt---kubernets-deployment) to set one up 
-for you.
+Alternatively, you can use the generated [Tiltfile](#tilt---kubernets-deployment) 
+to let Tilt set one up for you.
 
 To create a new service with a private Git repository pass the `--privaterepo` flag to
 the `micro new service` or `micro new function` commands. This implies the `--buildkit`
 flag.
 
 ```bash
-go-micro new service --buildkit helloworld
+go-micro new service --privaterepo helloworld
 ```
 
 ### Kubernetes
 
-Micro can automatically generate kubernetes manifests for a service template.
+Micro can automatically generate Kubernetes manifests for a service template.
 
 To create a new service with Kubernetes resources pass the `--kubernetes` flag to
 the `micro new service` or `micro new function` commands.
@@ -298,7 +298,7 @@ This allows you to directly probe the go-micro service in a Kubernetes container
 if it implements the health protocol.
 
 By passing the `--health` flag the gRPC protocol will be implemented, and if 
-kubernetes manifests are generated through any of the flags, it will add probes
+Kubernetes manifests are generated through any of the flags, it will add probes
 to the deployment manifest.
 
 To use this feature, the `GRPCContainerProbe` feature gate needs to be enabled 
@@ -318,7 +318,7 @@ go-micro new service --health helloworld
 #### Namespace
 
 Kubernetes manifests and Kustomize files set an explicit namespace by default.
-The default Kubernetes namespace is `default`. You can manually specify a differnt 
+The default Kubernetes namespace is `default`. You can manually specify a different 
 namespace during service creation.
 
 ```bash
@@ -327,7 +327,7 @@ go-micro new service --kustomize --namespace=custom helloworld
 
 #### Postgres Address
 
-If you create the service with the `--tern` flag, the default postgres address
+If you create the service with the `--tern` flag, the default Postgres address
 used is `postgres.database.svc`. To specify a different address use the 
 `--postgresaddress` flag
 
@@ -335,7 +335,7 @@ used is `postgres.database.svc`. To specify a different address use the
 go-micro new service --kustomize --tern --postgresaddress="my.namespace.svc" helloworld
 ```
 
-### Tilt - Kubernets Deployment
+### Tilt - Kubernetes Deployment
 
 Tilt can be used to set up a local Kubernetes deployment pipeline.
 
