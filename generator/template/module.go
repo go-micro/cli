@@ -6,7 +6,7 @@ var Module = `module {{.Vendor}}{{.Service}}{{if .Client}}-client{{end}}
 go 1.18
 
 require (
-	go-micro.dev/v4 v4.1.0
+	go-micro.dev/v4 v4.7.0
 )
 
 // Uncomment if you use etcd
