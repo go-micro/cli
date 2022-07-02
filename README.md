@@ -337,9 +337,9 @@ go-micro new service --kustomize --tern --postgresaddress="my.namespace.svc" hel
 
 ### Tilt - Kubernetes Deployment
 
-Tilt can be used to set up a local Kubernetes deployment pipeline.
+[Tilt][16] can be used to set up a local Kubernetes deployment pipeline.
 
-To create a new service with a [Tiltfile][9] file, pass the `--tilt` flag to
+To create a new service with a [Tiltfile][17] file, pass the `--tilt` flag to
 the `micro new service` or `micro new function` commands.
 
 This implies the `--kubernetes` flag.
@@ -627,3 +627,5 @@ $ go-micro stream bidi helloworld Helloworld.BidiStream '{"stroke": 1}' '{"strok
 [13]: https://github.com/grpc/grpc/blob/master/doc/health-checking.md
 [14]: https://github.com/kyleconroy/sqlc
 [15]: https://kubectl.docs.kubernetes.io/references/kustomize/
+[16]: https://tilt.dev/
+[17]: https://docs.tilt.dev/tiltfile_authoring.html
