@@ -94,6 +94,9 @@ import (
 	"context"
 
 	pb "{{.Vendor}}{{.Service}}/proto"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Health struct{}
@@ -104,9 +107,6 @@ func (h *Health) Check(ctx context.Context, req *pb.HealthCheckRequest, rsp *pb.
 }
 
 func (h *Health) Watch(ctx context.Context, req *pb.HealthCheckRequest, stream pb.Health_WatchStream) error {
-	stream.Send(&pb.HealthCheckResponse{
-		Status: pb.HealthCheckResponse_SERVING,
-	})
-	return nil
+	return status.Errorf(codes.Unimplemented, "health check via Watch not implemented")
 }
 `
