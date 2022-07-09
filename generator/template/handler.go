@@ -97,6 +97,9 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "{{.Vendor}}{{.Service}}/proto"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Health struct{}
