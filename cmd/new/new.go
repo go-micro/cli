@@ -214,6 +214,7 @@ func createProject(ctx *cli.Context, pt string) error {
 
 	if opts.Health {
 		files = append(files, []generator.File{
+			{Path: "proto/health.proto", Template: tmpl.ProtoHEALTH},
 			{Path: "handler/health.go", Template: tmpl.HealthSRV},
 		}...)
 	}

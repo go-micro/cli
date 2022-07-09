@@ -10,9 +10,9 @@ import (
 	pb "{{.Vendor}}{{lower .Service}}/proto"
 
 	"go-micro.dev/v4"
-	log "go-micro.dev/v4/logger"
+	"go-micro.dev/v4/logger"
 {{if .GRPC}}
-	"github.com/asim/go-micro/plugins/client/grpc/v4"
+	"github.com/go-micro/plugins/v4/client/grpc"
 {{end}}
 )
 
@@ -39,10 +39,10 @@ func main() {
 		// Call service
 		rsp, err := c.Call(context.Background(), &pb.CallRequest{Name: "John"})
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 
-		log.Info(rsp)
+		logger.Info(rsp)
 
 		time.Sleep(1 * time.Second)
 	}
@@ -55,9 +55,9 @@ var MainFNC = `package main
 import (
 	"{{.Vendor}}{{.Service}}/handler"
 
-{{if .Jaeger}}	ot "github.com/asim/go-micro/plugins/wrapper/trace/opentracing/v4"
+{{if .Jaeger}}	ot "github.com/go-micro/plugins/v4/wrapper/trace/opentracing"
 {{end}}	"go-micro.dev/v4"
-	log "go-micro.dev/v4/logger"{{if .Jaeger}}
+	"go-micro.dev/v4/logger"{{if .Jaeger}}
 
 	"go-micro.dev/v4/cmd/micro/debug/trace/jaeger"{{end}}
 )
@@ -75,7 +75,7 @@ func main() {
 		jaeger.GlobalTracer(true),
 	)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer closer.Close()
 
@@ -95,7 +95,7 @@ func main() {
 
 	// Run function
 	if err := fnc.Run(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 }
 `
@@ -112,17 +112,17 @@ import (
 	"{{.Vendor}}{{.Service}}/handler"
 	pb "{{.Vendor}}{{.Service}}/proto"
 
-{{if .Jaeger}}	ot "github.com/asim/go-micro/plugins/wrapper/trace/opentracing/v4"
+{{if .Jaeger}}	ot "github.com/go-micro/plugins/v4/wrapper/trace/opentracing"
 {{end}}	"go-micro.dev/v4"
-	log "go-micro.dev/v4/logger"{{if .Jaeger}}
+	"go-micro.dev/v4/logger"{{if .Jaeger}}
 {{- if .Advanced}}
 	"go-micro.dev/v4/server"
 {{- end}}
 
 	"github.com/go-micro/cli/debug/trace/jaeger"{{end}}
 {{if .GRPC}}
-	grpcc "github.com/asim/go-micro/plugins/client/grpc/v4"
-	"github.com/asim/go-micro/plugins/server/grpc/v4"
+	grpcc "github.com/go-micro/plugins/v4/client/grpc"
+	grpcs "github.com/go-micro/plugins/v4/server/grpc"
 {{- end}}
 )
 
@@ -139,7 +139,7 @@ func main() {
 		jaeger.GlobalTracer(true),
 	)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer closer.Close()
 {{ if .Advanced }}
@@ -150,18 +150,16 @@ func main() {
 {{end}}	// Create service
 	srv := micro.NewService(
 {{- if .GRPC}}
-		micro.Server(grpc.NewServer()),
+		micro.Server(grpcs.NewServer()),
 		micro.Client(grpcc.NewClient()),
 {{- end}}
-		micro.Name(service),
-		micro.Version(version),
 {{- if .Advanced}}
 		micro.BeforeStart(func() error {
-			log.Infof("Starting service %s", service)
+			logger.Infof("Starting service %s", service)
 			return nil
 		}),
 		micro.BeforeStop(func() error {
-			log.Infof("Shutting down service %s", service)
+			logger.Infof("Shutting down service %s", service)
 			cancel()
 			return nil
 		}),
@@ -175,7 +173,10 @@ func main() {
 		micro.WrapHandler(ot.NewHandlerWrapper(tracer)),
 		micro.WrapSubscriber(ot.NewSubscriberWrapper(tracer)),
 {{end}}	)
-	srv.Init()
+	srv.Init(
+		micro.Name(service),
+		micro.Version(version),
+	)
 {{- if .Advanced}}
 	srv.Server().Init(
 		server.Wait(&wg),
@@ -185,13 +186,17 @@ func main() {
 {{- end}}
 
 	// Register handler
-	pb.Register{{title .Service}}Handler(srv.Server(), new(handler.{{title .Service}}))
+	if err := pb.Register{{title .Service}}Handler(srv.Server(), new(handler.{{title .Service}})); err != nil {
+		logger.Fatal(err)
+	}
 {{- if .Health}}
-	pb.RegisterHealthHandler(srv.Server(), new(handler.Health))
+	if err := pb.RegisterHealthHandler(srv.Server(), new(handler.Health)); err != nil {
+		logger.Fatal(err)
+	}
 {{end}}
 	// Run service
 	if err := srv.Run(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 }
 `

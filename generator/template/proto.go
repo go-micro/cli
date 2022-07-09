@@ -65,8 +65,15 @@ message BidiStreamRequest {
 message BidiStreamResponse {
 	int64 stroke = 1;
 }
+`
 
-{{if .Health}}
+// ProtoHEALTH is the .proto file template used for health.
+var ProtoHEALTH = `syntax = "proto3";
+
+package {{dehyphen .Service}};
+
+option go_package = "./proto;{{dehyphen .Service}}";
+
 service Health {
   rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {}
   rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {}
@@ -85,5 +92,4 @@ message HealthCheckResponse {
   }
   ServingStatus status = 1;
 }
-{{end}}
 `

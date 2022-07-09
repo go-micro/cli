@@ -6,7 +6,7 @@ var HandlerFNC = `package handler
 import (
 	"context"
 
-	log "go-micro.dev/v4/logger"
+	"go-micro.dev/v4/logger"
 
 	pb "{{.Vendor}}{{.Service}}/proto"
 )
@@ -14,7 +14,7 @@ import (
 type {{title .Service}} struct{}
 
 func (e *{{title .Service}}) Call(ctx context.Context, req *pb.CallRequest, rsp *pb.CallResponse) error {
-	log.Infof("Received {{title .Service}}.Call request: %v", req)
+	logger.Infof("Received {{title .Service}}.Call request: %v", req)
 	rsp.Msg = "Hello " + req.Name
 	return nil
 }
@@ -28,7 +28,7 @@ import (
 	"io"
 	"time"
 
-	log "go-micro.dev/v4/logger"
+	"go-micro.dev/v4/logger"
 
 	pb "{{.Vendor}}{{.Service}}/proto"
 )
@@ -36,7 +36,7 @@ import (
 type {{title .Service}} struct{}
 
 func (e *{{title .Service}}) Call(ctx context.Context, req *pb.CallRequest, rsp *pb.CallResponse) error {
-	log.Infof("Received {{title .Service}}.Call request: %v", req)
+	logger.Infof("Received {{title .Service}}.Call request: %v", req)
 	rsp.Msg = "Hello " + req.Name
 	return nil
 }
@@ -46,21 +46,21 @@ func (e *{{title .Service}}) ClientStream(ctx context.Context, stream pb.{{title
 	for {
 		req, err := stream.Recv()
 		if err == io.EOF {
-			log.Infof("Got %v pings total", count)
+			logger.Infof("Got %v pings total", count)
 			return stream.SendMsg(&pb.ClientStreamResponse{Count: count})
 		}
 		if err != nil {
 			return err
 		}
-		log.Infof("Got ping %v", req.Stroke)
+		logger.Infof("Got ping %v", req.Stroke)
 		count++
 	}
 }
 
 func (e *{{title .Service}}) ServerStream(ctx context.Context, req *pb.ServerStreamRequest, stream pb.{{title .Service}}_ServerStreamStream) error {
-	log.Infof("Received {{title .Service}}.ServerStream request: %v", req)
+	logger.Infof("Received {{title .Service}}.ServerStream request: %v", req)
 	for i := 0; i < int(req.Count); i++ {
-		log.Infof("Sending %d", i)
+		logger.Infof("Sending %d", i)
 		if err := stream.Send(&pb.ServerStreamResponse{
 			Count: int64(i),
 		}); err != nil {
@@ -80,7 +80,7 @@ func (e *{{title .Service}}) BidiStream(ctx context.Context, stream pb.{{title .
 		if err != nil {
 			return err
 		}
-		log.Infof("Got ping %v", req.Stroke)
+		logger.Infof("Got ping %v", req.Stroke)
 		if err := stream.Send(&pb.BidiStreamResponse{Stroke: req.Stroke}); err != nil {
 			return err
 		}
@@ -93,6 +93,9 @@ var HealthSRV = `package handler
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	pb "{{.Vendor}}{{.Service}}/proto"
 )
 
@@ -104,9 +107,6 @@ func (h *Health) Check(ctx context.Context, req *pb.HealthCheckRequest, rsp *pb.
 }
 
 func (h *Health) Watch(ctx context.Context, req *pb.HealthCheckRequest, stream pb.Health_WatchStream) error {
-	stream.Send(&pb.HealthCheckResponse{
-		Status: pb.HealthCheckResponse_SERVING,
-	})
-	return nil
+	return status.Errorf(codes.Unimplemented, "health check via Watch not implemented")
 }
 `

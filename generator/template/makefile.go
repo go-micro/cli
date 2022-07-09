@@ -7,7 +7,7 @@ var Makefile = `GOPATH:=$(shell go env GOPATH)
 init:
 	@go get -u google.golang.org/protobuf/proto
 	@go install github.com/golang/protobuf/protoc-gen-go@latest
-	@go install github.com/asim/go-micro/cmd/protoc-gen-micro/v4@latest
+	@go install go-micro.dev/v4/cmd/protoc-gen-micro@v4
 	{{- if .Tern}}
 	@go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 	{{- end}}
@@ -18,6 +18,9 @@ init:
 .PHONY: proto
 proto:
 	@protoc --proto_path=. --micro_out=. --go_out=:. proto/{{.Service}}.proto
+	{{- if .Health}}
+	@protoc --proto_path=. --micro_out=. --go_out=:. proto/health.proto
+	{{end}}
 
 .PHONY: update
 update:
