@@ -9,6 +9,7 @@ WORKDIR /go/src/{{.Service}}{{if .Client}}-client{{end}}
 
 # Install dependencies
 RUN apk --update --no-cache add ca-certificates gcc libtool make musl-dev protoc git{{if .PrivateRepo}} openssh-client{{end}}
+{{- if .PrivateRepo}}
 {{if ne .Vendor ""}}
 # Env config for private repo
 ENV GOPRIVATE="{{ gitorg .Vendor }}/*"
@@ -18,12 +19,17 @@ RUN git config --global url."ssh://git@{{ gitorg .Vendor }}".insteadOf "https://
 # ENV GOPRIVATE="github.com/<your private org>/*"
 # RUN git config --global url."ssh://git@github.com/<your private org>".insteadOf "https://github.com/<your private org>" 
 {{end}}
-{{- if .PrivateRepo}}
 # Authorize SSH Host
 RUN mkdir -p /root/.ssh && \
 	chmod 0700 /root/.ssh && \
 	ssh-keyscan github.com > /root/.ssh/known_hosts &&\
 	chmod 644 /root/.ssh/known_hosts && touch /root/.ssh/config
+{{end}}
+{{if .Health}}
+# Download grpc_health_probe
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.11 && \
+wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+chmod +x /bin/grpc_health_probe
 {{end}}
 # Build Go binary
 COPY {{if not .Client}}Makefile {{end}}go.mod go.sum ./
@@ -35,6 +41,9 @@ RUN {{if .Buildkit}}--mount=type=cache,target=/root/.cache/go-build --mount=type
 FROM scratch
 
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+{{- if .Health}}
+COPY --from=build /bin/grpc_health_probe /bin/
+{{- end}}
 COPY --from=builder /go/src/{{.Service}}{{if .Client}}-client{{end}}/{{.Service}}{{if .Client}}-client{{end}} /{{.Service}}{{if .Client}}-client{{end}}
 ENTRYPOINT ["/{{.Service}}{{if .Client}}-client{{end}}"]
 CMD []

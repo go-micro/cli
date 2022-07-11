@@ -125,7 +125,7 @@ package helloworld
 import (
     "context"
 
-    log "go-micro.dev/v4/logger"
+    "go-micro.dev/v4/logger"
 
     "helloworld/greeter"
     pb "helloworld/proto"
@@ -134,7 +134,7 @@ import (
 type Helloworld struct{}
 
 func (e *Helloworld) Call(ctx context.Context, req pb.CallRequest, rsp *pb.CallResponse) error {
-    log.Infof("Received Helloworld.Call request: %v", req)
+    logger.Infof("Received Helloworld.Call request: %v", req)
     rsp.Msg = greeter.Greet(ctx, req.Name)
     return nil
 }
