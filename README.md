@@ -37,19 +37,11 @@ documentation for more info on developing services.
 
 ## Dependencies
 
-You will need protoc-gen-micro for code generation
+You will need protoc for code generation.
 
-* [protobuf][4]
-* [protoc-gen-go][5]
-* [protoc-gen-micro][6]
-
-```bash
-# Download latest proto release
-# https://github.com/protocolbuffers/protobuf/releases
-go get -u google.golang.org/protobuf/proto
-go install github.com/golang/protobuf/protoc-gen-go@latest
-go install go-micro.dev/v4/cmd/protoc-gen-micro@v4
-```
+You can either install it using your pacakge manager, or manually install it by downloading the protoc zip packages 
+(protoc-$VERSION-$PLATFORM.zip) from https://github.com/protocolbuffers/protobuf/releases/latest 
+and installing its contents.
 
 ## Creating A Service
 
@@ -61,24 +53,23 @@ $ go-micro new service github.com/<org>/<repo>/helloworld
 ...
 ```
 
+or
+
 ```bash
 $ go-micro new service helloworld
 creating service helloworld
 
-download protoc zip packages (protoc-$VERSION-$PLATFORM.zip) and install:
+install requirements:
 
-visit https://github.com/protocolbuffers/protobuf/releases/latest
+protoc is needed for code generation. You can either install it using your 
+pacakge manager, or manually install it by downloading the protoc zip packages 
+(protoc-$VERSION-$PLATFORM.zip) from https://github.com/protocolbuffers/protobuf/releases/latest 
+and installing its contents.
 
-download protobuf for go-micro:
+compile the proto file helloworld-new.proto and install dependencies:
 
-go get -u google.golang.org/protobuf/proto
-go install github.com/golang/protobuf/protoc-gen-go@latest
-go install go-micro.dev/cmd/protoc-gen-micro/v4@latest
-
-compile the proto file helloworld.proto:
-
-cd helloworld
-make proto tidy
+cd helloworld-new
+make proto init update tidy
 ```
 
 To create a new function, use the `micro new function` command. Functions differ
@@ -88,20 +79,17 @@ from services in that they exit after returning.
 $ go-micro new function helloworld
 creating function helloworld
 
-download protoc zip packages (protoc-$VERSION-$PLATFORM.zip) and install:
+install requirements:
 
-visit https://github.com/protocolbuffers/protobuf/releases/latest
+protoc is needed for code generation. You can either install it using your 
+pacakge manager, or manually install it by downloading the protoc zip packages 
+(protoc-$VERSION-$PLATFORM.zip) from https://github.com/protocolbuffers/protobuf/releases/latest 
+and installing its contents.
 
-download protobuf for go-micro:
+compile the proto file test-func.proto and install dependencies:
 
-go get -u google.golang.org/protobuf/proto
-go install github.com/golang/protobuf/protoc-gen-go@latest
-go install go-micro.dev/cmd/protoc-gen-micro/v4@latest
-
-compile the proto file helloworld.proto:
-
-cd helloworld
-make proto tidy
+cd test-func
+make init proto update tidy
 ```
 
 ### Jaeger
