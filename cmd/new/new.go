@@ -297,7 +297,7 @@ and installing its contents.
 compile the proto file {{ .Name }}.proto and install dependencies:
 
 cd {{ .Dir }}
-make proto init {{ if .Sqlc }}sqlc {{ end }}update tidy`
+make init proto {{ if .Sqlc }}sqlc {{ end }}update tidy`
 
 	t, err := template.New("comments").Parse(tmp)
 	if err != nil {
