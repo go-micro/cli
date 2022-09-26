@@ -147,6 +147,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 {{- end }}
 
+{{- if .ID}}
+	// Use Kubernetes hostname as id
+	node := uuid.New().String()
+	if host, ok := os.LookupEnv("HOSTNAME"); ok {
+		node = host
+	}
+{{- end}}
+
 {{end}}	// Create service
 	srv := micro.NewService(
 {{- if .GRPC}}

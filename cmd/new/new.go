@@ -8,11 +8,12 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pkg/errors"
+	"github.com/urfave/cli/v2"
+
 	mcli "github.com/go-micro/cli/cmd"
 	"github.com/go-micro/cli/generator"
 	tmpl "github.com/go-micro/cli/generator/template"
-	"github.com/pkg/errors"
-	"github.com/urfave/cli/v2"
 )
 
 var flags []cli.Flag = []cli.Flag{
@@ -286,20 +287,17 @@ func clientComments(name, dir string) []string {
 
 func protoComments(name, dir string, sqlc bool) ([]string, error) {
 	tmp := `
-download protoc zip packages (protoc-$VERSION-$PLATFORM.zip) and install:
+install requirements:
 
-visit https://github.com/protocolbuffers/protobuf/releases/latest
-
-download protobuf for go-micro:
-
-go get -u google.golang.org/protobuf/proto
-go install github.com/golang/protobuf/protoc-gen-go@latest
-go install go-micro.dev/v4/cmd/protoc-gen-micro@v4
+protoc is needed for code generation. You can either install it using your 
+pacakge manager, or manually install it by downloading the protoc zip packages 
+(protoc-$VERSION-$PLATFORM.zip) from https://github.com/protocolbuffers/protobuf/releases/latest 
+and installing its contents.
 
 compile the proto file {{ .Name }}.proto and install dependencies:
 
 cd {{ .Dir }}
-make proto {{ if .Sqlc }}sqlc {{ end }}update tidy`
+make proto init {{ if .Sqlc }}sqlc {{ end }}update tidy`
 
 	t, err := template.New("comments").Parse(tmp)
 	if err != nil {
