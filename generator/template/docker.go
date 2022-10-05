@@ -42,7 +42,7 @@ FROM scratch
 
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 {{- if .Health}}
-COPY --from=build /bin/grpc_health_probe /bin/
+COPY --from=builder /bin/grpc_health_probe /bin/
 {{- end}}
 COPY --from=builder /go/src/{{.Service}}{{if .Client}}-client{{end}}/{{.Service}}{{if .Client}}-client{{end}} /{{.Service}}{{if .Client}}-client{{end}}
 ENTRYPOINT ["/{{.Service}}{{if .Client}}-client{{end}}"]
