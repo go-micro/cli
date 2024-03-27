@@ -55,9 +55,14 @@ func Run(ctx *cli.Context) error {
 		return err
 	}
 
+	tmpSrc := source.RuntimeSource()
+	if os.Getenv("GOOS") == "windows" {
+		tmpPath = strings.Replace(source.RuntimeSource(), ":", "", 1)
+	}
+	
 	svc := &runtime.Service{
 		Name:     source.RuntimeName(),
-		Source:   source.RuntimeSource(),
+		Source:   tmpSrc,
 		Version:  source.Ref,
 		Metadata: make(map[string]string),
 	}
